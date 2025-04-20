@@ -1,9 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from users.models import Payments
+from materials.models import Course
+from users.models import Payments, Subscription
 from users.serializers import PaymentsSerializer
 
 
@@ -15,3 +19,23 @@ class PaymentsListAPIView(generics.ListAPIView):
     filterset_fields = ['course', 'lesson', 'payment_type']
     ordering_fields = ['payment_date']
     ordering = ['-payment_date']
+
+
+class SubscriptionCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        course_id = request.data.get('course_id')
+        course = get_object_or_404(Course, id=course_id)
+
+        subscription_qs = Subscription.objects.filter(user=user, course=course)
+
+        if subscription_qs.exists():
+            subscription_qs.delete()
+            message = 'Подписка удалена'
+        else:
+            Subscription.objects.create(user=user, course=course)
+            message = 'Подписка добавлена'
+
+        return Response({"message": message})

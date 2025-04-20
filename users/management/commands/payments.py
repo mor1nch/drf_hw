@@ -18,6 +18,8 @@ class Command(BaseCommand):
             is_staff=True,
             is_superuser=True,
         )
+        user.set_password("password")
+        user.save()
 
         Payments.objects.create(
             user=user,
