@@ -11,7 +11,7 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
-    course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, related_name="lessons", on_delete=models.CASCADE, related_query_name="lessons")
     title = models.CharField(max_length=100)
     description = models.TextField()
     preview = models.ImageField(upload_to='lesson_previews/', null=True, blank=True)
