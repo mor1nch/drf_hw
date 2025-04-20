@@ -29,8 +29,10 @@ class Payments(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     payment_date = models.DateField(auto_now_add=True)
-    amount = models.DecimalField(decimal_places=2, max_digits=10)
+    amount = models.PositiveIntegerField()
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE)
+    session_id = models.CharField(max_length=255, blank=True, null=True)
+    url = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.email} course: {self.course.title}, lesson: {self.lesson.title}"

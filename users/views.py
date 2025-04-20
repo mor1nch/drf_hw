@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.filters import OrderingFilter
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,6 +10,7 @@ from rest_framework.views import APIView
 from materials.models import Course
 from users.models import Payments, Subscription
 from users.serializers import PaymentsSerializer
+from users.services import create_product, create_price, create_session
 
 
 # Create your views here.
@@ -39,3 +41,20 @@ class SubscriptionCreateAPIView(APIView):
             message = 'Подписка добавлена'
 
         return Response({"message": message})
+
+
+class PaymentCreate(CreateAPIView):
+    serializer_class = PaymentsSerializer
+    queryset = Payments.objects.all()
+
+    def perform_create(self, serializer):
+        payment = serializer.save()
+        if payment.lesson:
+            product = create_product(payment.lesson.title)
+        else:
+            product = create_product(payment.course.title)
+        price = create_price(payment.amount, product)
+        session_id, payment_url = create_session(price)
+        payment.session_id = session_id
+        payment.url = payment_url
+        payment.save()
